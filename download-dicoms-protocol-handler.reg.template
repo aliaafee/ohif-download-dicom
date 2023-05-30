@@ -1,0 +1,13 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_CURRENT_USER\Software\Classes\dldicom]
+"URL Protocol"="\"\""
+@="\"URL:Download DICOM\""
+
+
+[HKEY_CURRENT_USER\Software\Classes\dldicom\shell]
+
+[HKEY_CURRENT_USER\Software\Classes\dldicom\shell\open]
+
+[HKEY_CURRENT_USER\Software\Classes\dldicom\shell\open\command]
+@="\"C:\\Path\\To\\Python3\\python.exe\" \"C:\\Path\\To\\download-dicoms-protocol-handler.py\" --viewer=\"C:\\Path\\To\\Viewer.exe\" \"%1\""
