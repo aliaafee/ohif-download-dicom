@@ -255,7 +255,6 @@ class Downloader:
     def start(self, src_url) -> None:
         self.src_url = src_url
         self.set_status("Starting Download...")
-        print("Starting Download")
         self.thread.start()
 
 
@@ -325,19 +324,21 @@ def main_gui():
     root.title('Download DICOMs')
     root.resizable(False, False)
     root.grid()
+    root.grid_columnconfigure(tuple(range(2)), weight=1)
+    root.grid_rowconfigure(tuple(range(2)), weight=1)
     root.eval('tk::PlaceWindow . center')
 
     progress_bar = ttk.Progressbar(
         root,
         orient='horizontal',
-        mode='indeterminate',
-        length=380
+        mode='indeterminate'
     )
     progress_bar.start()
 
     url_entry = tk.Entry(
         root,
-        width= 45)
+        width = 48
+    )
 
 
     url_label = ttk.Label(
@@ -347,8 +348,7 @@ def main_gui():
 
     status_label = ttk.Label(
         root,
-        text='',
-        width=60
+        text=''
     )
 
     start_button = ttk.Button(
@@ -369,7 +369,7 @@ def main_gui():
 
     url_label.grid(column=0, row=0, padx=10, pady=20, columnspan=2, sticky=tk.W)
     url_entry.grid(column=0, row=0, padx=10, pady=20, columnspan=2, sticky=tk.E)
-    status_label.grid(column=0, row=1, padx=10, pady=0, columnspan=2)
+    status_label.grid(column=0, row=1, padx=10, pady=0, columnspan=2, sticky=tk.NSEW)
     cancel_button.grid(column=1, row=2, padx=10, pady=10, sticky=tk.W)
     
     download_url = ""
@@ -406,7 +406,7 @@ def main_gui():
     def show_progress_bar():
         url_entry.grid_forget()
         url_label.grid_forget()
-        progress_bar.grid(column=0, row=0, padx=10, pady=20, columnspan=2)
+        progress_bar.grid(column=0, row=0, padx=10, pady=20, columnspan=2, sticky=tk.NSEW)
 
     def show_url_entry():
         progress_bar.grid_forget()
