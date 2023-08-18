@@ -1,2 +1,5 @@
 download-dicoms-protocol-handler.reg
 downloaded/*
+dist
+venv
+build
