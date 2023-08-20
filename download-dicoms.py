@@ -11,8 +11,13 @@ import getopt
 from urllib.parse import urlparse, parse_qs
 
 
+if getattr(sys, 'frozen', False):
+    application_path = os.path.realpath(os.path.dirname(sys.executable))
+else:
+    application_path = os.path.realpath(os.path.dirname(__file__))
+
 CACHE_DIR = os.path.join(
-    os.path.realpath(os.path.dirname(__file__)),
+    application_path,
     "downloaded"
 )
 
