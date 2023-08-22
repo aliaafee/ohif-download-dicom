@@ -304,7 +304,7 @@ def get_src_url(url):
     if protocol == 'dldicom':
         return download_url
 
-    if protocol == 'http':
+    if protocol in ['http', 'https']:
         src_parsed = urlparse(url)
         qs = parse_qs(src_parsed.query)
         if 'url' in qs:
@@ -312,6 +312,15 @@ def get_src_url(url):
                 return qs['url'][0]     
         
     return url
+
+
+def is_url(url):
+    protocol, sep, download_url = url.partition(":")
+
+    if not protocol in ['dldicom', 'http', 'https']:
+        return False
+
+    return True
 
 
 def get_default_viewer():
@@ -486,6 +495,11 @@ def main_gui():
 
     if (download_url):
         start_handler()
+
+    clipboard_text = root.clipboard_get()
+
+    if is_url(clipboard_text):
+        url_entry.insert(0, clipboard_text)
 
     root.mainloop()
 
