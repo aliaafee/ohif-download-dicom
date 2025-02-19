@@ -76,15 +76,17 @@ def get_dicom_urllist_string(url):
 def get_outfilename(list_item, output_dir):
     patient_id, patient_name, url = list_item 
     base, _, ident = url.partition("file=/")
-    ident = ident.replace("/", "-")
-    return os.path.join(
+    filename = os.path.join(
         output_dir,
-        f"{patient_id}-{ident}.dcm"
+        ident.replace("/", os.sep).upper()
     )
+    return filename
 
 
 def download_dicom(url_list_item, output_dir):
     output_filename = get_outfilename(url_list_item, output_dir)
+
+    os.makedirs(os.path.dirname(output_filename), exist_ok=True)
     
     if os.path.exists(output_filename):
         return
@@ -496,7 +498,10 @@ def main_gui():
     if (download_url):
         start_handler()
 
-    clipboard_text = root.clipboard_get()
+    try:
+        clipboard_text = root.clipboard_get()
+    except:
+        clipboard_text = ""
 
     if is_url(clipboard_text):
         url_entry.insert(0, clipboard_text)
