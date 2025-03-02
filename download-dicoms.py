@@ -162,6 +162,7 @@ class Downloader:
 
     def reset(self):
         self.src_url = ""
+        self.dicom_dcmmkdir = ""
         self.batch_worker = BatchWorker()
         self.thread = threading.Thread(target=self.download_worker, daemon=True)
         self.message_queue = queue.Queue()
@@ -254,13 +255,27 @@ class Downloader:
             self.set_status("Moving from temporary location")
             os.rename(temp_dir, output_dir)
 
+        if self.dicom_dcmmkdir:
+            self.set_status("Creating DICOMDIR")
+            self.create_dicomdir(output_dir)
+
         self.set_status("Download Complete")
         
         self.completed = True
 
 
-    def start(self, src_url) -> None:
+    def create_dicomdir(self, output_dir):
+        if self.dicom_dcmmkdir == "":
+            return
+        try:
+            result = subprocess.check_output([self.dicom_dcmmkdir, "+r", "*"], cwd=output_dir)
+        except subprocess.CalledProcessError:
+            print("Error Creating DICOMDIR")
+
+
+    def start(self, src_url, dicom_dcmmkdir="") -> None:
         self.src_url = src_url
+        self.dicom_dcmmkdir = dicom_dcmmkdir
         self.set_status("Starting Download...")
         self.thread.start()
 
@@ -390,14 +405,17 @@ def main_gui():
     
     download_url = ""
     dicom_viewer = get_default_viewer()
+    dicom_dcmmkdir = ""
     
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "v:", ["viewer="])
+        opts, args = getopt.getopt(sys.argv[1:], "v:d:", ["viewer=", "dcmmkdir="])
 
         for opt, arg in opts:
             if opt in ("-v", "--viewer"):
                 dicom_viewer = arg
+            if opt in ("-d", "--dcmmkdir"):
+                dicom_dcmmkdir = arg
 
         try:
             download_url = args[0]
@@ -484,7 +502,7 @@ def main_gui():
     def start_handler():
         show_open_button()
         show_progress_bar()
-        downloader.start(get_src_url(url_entry.get()))
+        downloader.start(get_src_url(url_entry.get()), dicom_dcmmkdir)
 
         
     start_button['command'] = start_handler
