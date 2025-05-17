@@ -163,6 +163,7 @@ class Downloader:
     def reset(self):
         self.src_url = ""
         self.dicom_dcmmkdir = ""
+        self.post_download_callback = None
         self.batch_worker = BatchWorker()
         self.thread = threading.Thread(target=self.download_worker, daemon=True)
         self.message_queue = queue.Queue()
@@ -238,6 +239,11 @@ class Downloader:
         if os.path.exists(output_dir):
             self.set_status(f"Study already downloaded")
             self.completed = True
+
+            if self.post_download_callback:
+                self.set_status("Running post download actions")
+                self.post_download_callback(output_dir)
+
             return
 
         if not os.path.exists(temp_dir):
@@ -259,6 +265,10 @@ class Downloader:
             self.set_status("Creating DICOMDIR")
             self.create_dicomdir(output_dir)
 
+        if self.post_download_callback:
+            self.set_status("Running post download actions")
+            self.post_download_callback(output_dir)
+
         self.set_status("Download Complete")
         
         self.completed = True
@@ -273,9 +283,10 @@ class Downloader:
             print("Error Creating DICOMDIR")
 
 
-    def start(self, src_url, dicom_dcmmkdir="") -> None:
+    def start(self, src_url, post_download_callback=None, dicom_dcmmkdir="") -> None:
         self.src_url = src_url
         self.dicom_dcmmkdir = dicom_dcmmkdir
+        self.post_download_callback = post_download_callback
         self.set_status("Starting Download...")
         self.thread.start()
 
@@ -346,9 +357,13 @@ def get_default_viewer():
     return "explorer.exe"
 
 
-def main_gui():
+def main_gui(download_url, dicom_viewer, dicom_dcmmkdir):
     from tkinter import ttk
     import tkinter as tk
+
+    def post_download_actions(output_dir):
+        # Post download actions here
+        pass
 
     root = tk.Tk()
     root.geometry('400x130')
@@ -403,27 +418,6 @@ def main_gui():
     status_label.grid(column=0, row=1, padx=10, pady=0, columnspan=2, sticky=tk.NSEW)
     cancel_button.grid(column=1, row=2, padx=10, pady=10, sticky=tk.W)
     
-    download_url = ""
-    dicom_viewer = get_default_viewer()
-    dicom_dcmmkdir = ""
-    
-
-    try:
-        opts, args = getopt.getopt(sys.argv[1:], "v:d:", ["viewer=", "dcmmkdir="])
-
-        for opt, arg in opts:
-            if opt in ("-v", "--viewer"):
-                dicom_viewer = arg
-            if opt in ("-d", "--dcmmkdir"):
-                dicom_dcmmkdir = arg
-
-        try:
-            download_url = args[0]
-        except IndexError:
-            download_url = ""
-            
-    except getopt.GetoptError:
-        print("Options Error")
 
     url_entry.insert(0, download_url)
 
@@ -502,7 +496,10 @@ def main_gui():
     def start_handler():
         show_open_button()
         show_progress_bar()
-        downloader.start(get_src_url(url_entry.get()), dicom_dcmmkdir)
+        downloader.start(
+            get_src_url(url_entry.get()), 
+            post_download_callback=post_download_actions,
+            dicom_dcmmkdir=dicom_dcmmkdir)
 
         
     start_button['command'] = start_handler
@@ -567,9 +564,51 @@ def main_cli():
     downloader.join()
 
 
+def app_license():
+    """App license"""
+    print("DICOM Downloader {0}".format("0.1"))
+    print("---------------------")
+    print("")
+
+
+def usage():
+    """App usage"""
+    app_license()
+    print("Usage:")
+    print("    -h, --help")
+    print("       Displays this help")
+    print("    -v, --viewer")
+    print("       Viewer to load downloaded dicom images in")
+    print("    -d, --dcmmkdir")
+    print("       Location of dcmmkdir binary from dcmtk to generate DICOMDIR")
+
+
 def main():
+    download_url = ""
+    dicom_viewer = get_default_viewer()
+    dicom_dcmmkdir = ""
+    
     try:
-        main_gui()
+        opts, args = getopt.getopt(sys.argv[1:], "hv:d:", ["help", "viewer=", "dcmmkdir="])
+
+        for opt, arg in opts:
+            if opt in ("-h", "--help"):
+                usage()
+                exit()
+            if opt in ("-v", "--viewer"):
+                dicom_viewer = arg
+            if opt in ("-d", "--dcmmkdir"):
+                dicom_dcmmkdir = arg
+
+        try:
+            download_url = args[0]
+        except IndexError:
+            download_url = ""
+            
+    except getopt.GetoptError:
+        print("Options Error")
+    try:
+        main_gui(download_url, dicom_viewer, dicom_dcmmkdir)
     except ModuleNotFoundError:
         main_cli()
 

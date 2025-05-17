@@ -10,4 +10,4 @@ Windows Registry Editor Version 5.00
 [HKEY_CURRENT_USER\Software\Classes\dldicom\shell\open]
 
 [HKEY_CURRENT_USER\Software\Classes\dldicom\shell\open\command]
-@="\"C:\\Path\\To\\Python3\\python.exe\" \"C:\\Path\\To\\download-dicoms.py\" --viewer=\"C:\\Path\\To\\Viewer.exe\" \"%1\""
+@="\"C:\\Path\\To\\Python3\\python.exe\" \"C:\\Path\\To\\download-dicoms.py\" --viewer=\"C:\\Path\\To\\Viewer.exe\" --dcmmkdir=\"C:\\DCMTK\\dcmmkdir.exe\" \"%1\""
